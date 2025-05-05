@@ -150,15 +150,31 @@
         .table {
             --bs-table-hover-bg: var(--hover-bg);
             color: var(--text-primary);
+            font-size: 0.875rem;
         }
 
         .table th {
             background-color: #f8fafc;
             color: var(--text-secondary);
-            font-weight: 600;
-            text-transform: uppercase;
-            font-size: 0.75rem;
-            letter-spacing: 0.5px;
+            font-weight: 500;
+            font-size: 0.875rem;
+            padding: 0.75rem;
+            white-space: nowrap;
+            letter-spacing: normal;
+            text-transform: none;
+        }
+
+        /* Ensure consistent font weight for dropdown toggles in table headers */
+        .table th .btn-link {
+            font-weight: 500;
+            font-size: 0.875rem;
+            padding: 0;
+        }
+
+        /* Keep dropdown text consistent with other header text */
+        .table th .dropdown-toggle {
+            font-weight: 500;
+            font-size: 0.875rem;
         }
 
         .badge {
@@ -395,15 +411,17 @@
 
         <!-- Main Content -->
         <div class="main-content">
-            <div class="content-wrapper">
+            <div class="content-wrapper px-4">
                 <!-- Header/Breadcrumb -->
                 <header class="bg-white shadow-sm mb-4 p-3 rounded">
-                    <nav aria-label="breadcrumb">
-                        <ol class="breadcrumb mb-0">
-                            <li class="breadcrumb-item"><a href="{{ route('siswa.index') }}">Home</a></li>
-                            <li class="breadcrumb-item active">@yield('title')</li>
-                        </ol>
-                    </nav>
+                    <div class="container-fluid">
+                        <nav aria-label="breadcrumb">
+                            <ol class="breadcrumb mb-0">
+                                <li class="breadcrumb-item"><a href="{{ route('siswa.index') }}">Home</a></li>
+                                <li class="breadcrumb-item active">@yield('title')</li>
+                            </ol>
+                        </nav>
+                    </div>
                 </header>
 
                 <!-- Page Content -->

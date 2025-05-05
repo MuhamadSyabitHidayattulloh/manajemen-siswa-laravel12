@@ -3,7 +3,7 @@
 @section('title', 'Daftar Siswa')
 
 @section('content')
-<div class="container-fluid fade-in">
+<div class="container-fluid px-4">
     <!-- Statistics Cards -->
     <div class="row g-3 mb-4">
         <div class="col-sm-6 col-xl-3">
@@ -151,13 +151,18 @@
         </div>
     </div>
 
-    <!-- Data Table Card -->
+    <!-- List View -->
     <div class="card shadow-sm border-0 rounded-3">
         <div class="card-body p-0">
             <div class="table-responsive" style="min-width: 100%;">
                 <table class="table table-hover align-middle mb-0" style="min-width: 1200px;">
                     <thead class="bg-light">
                         <tr>
+                            <th>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="selectAll">
+                                </div>
+                            </th>
                             <th>
                                 <a href="{{ route('siswa.index', ['sort' => 'nis', 'direction' => $sort === 'nis' && $direction === 'asc' ? 'desc' : 'asc'] + request()->except(['sort', 'direction'])) }}" 
                                    class="text-decoration-none text-dark d-flex align-items-center gap-1">
@@ -229,12 +234,19 @@
                                 </div>
                             </th>
                             <th>Alamat</th>
-                            <th>Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
                         @foreach($siswa as $s)
-                            <tr>
+                            <tr class="cursor-pointer" 
+                                data-id="{{ $s->id }}"
+                                onclick="window.location='{{ route('siswa.show', $s->id) }}'"
+                                oncontextmenu="showContextMenu(event, {{ $s->id }}, '{{ $s->nama }}'); return false;">
+                                <td onclick="event.stopPropagation()">
+                                    <div class="form-check">
+                                        <input class="form-check-input row-checkbox" type="checkbox" value="{{ $s->id }}">
+                                    </div>
+                                </td>
                                 <td><span class="badge bg-secondary rounded-pill">{{ $s->nis }}</span></td>
                                 <td class="fw-semibold">{{ $s->nama }}</td>
                                 <td><span class="badge bg-light text-dark">{{ $s->kelas }}</span></td>
@@ -253,55 +265,6 @@
                                     {{ ucfirst($s->jenis_kelamin) }}
                                 </td>
                                 <td class="text-muted">{{ $s->alamat }}</td>
-                                <td>
-                                    <div class="dropdown">
-                                        <button class="btn btn-light btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                                            Aksi
-                                        </button>
-                                        <ul class="dropdown-menu">
-                                            <li>
-                                                <a class="dropdown-item" href="{{ route('siswa.show', $s->id) }}">
-                                                    <i class="bi bi-eye me-2"></i>Detail
-                                                </a>
-                                            </li>
-                                            <li>
-                                                <a class="dropdown-item" href="{{ route('siswa.edit', $s->id) }}">
-                                                    <i class="bi bi-pencil me-2"></i>Edit
-                                                </a>
-                                            </li>
-                                            <li><hr class="dropdown-divider"></li>
-                                            <li>
-                                                <button class="dropdown-item text-danger" data-bs-toggle="modal" data-bs-target="#deleteModal{{ $s->id }}">
-                                                    <i class="bi bi-trash me-2"></i>Hapus
-                                                </button>
-                                            </li>
-                                        </ul>
-                                    </div>
-                                    <form action="{{ route('siswa.destroy', $s->id) }}" method="POST" class="d-inline delete-form">
-                                        @csrf
-                                        @method('DELETE')
-                                        <!-- Delete Modal -->
-                                        <div class="modal fade modal-confirm" id="deleteModal{{ $s->id }}" tabindex="-1">
-                                            <div class="modal-dialog modal-dialog-centered modal-sm">
-                                                <div class="modal-content">
-                                                    <div class="modal-header">
-                                                        <div class="icon-box">
-                                                            <i class="bi bi-exclamation-triangle"></i>
-                                                        </div>
-                                                    </div>
-                                                    <div class="modal-body">
-                                                        <h4 class="mb-3">Apakah anda yakin?</h4>
-                                                        <p class="mb-0">Data siswa {{ $s->nama }} akan dihapus permanen.</p>
-                                                    </div>
-                                                    <div class="modal-footer justify-content-center">
-                                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                                                        <button type="submit" class="btn btn-danger">Hapus</button>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </form>
-                                </td>
                             </tr>
                         @endforeach
                     </tbody>
@@ -320,12 +283,162 @@
                 </div>
             </div>
         </div>
+
+        <!-- Context Menu -->
+        <div id="contextMenu" class="position-fixed shadow-sm rounded-3" style="display: none; z-index: 1050; min-width: 200px; background: white;">
+            <div class="p-2">
+                <h6 class="dropdown-header px-2 text-muted"></h6>
+                <a href="#" class="d-flex align-items-center px-3 py-2 text-decoration-none text-dark rounded-2 edit-link">
+                    <i class="bi bi-pencil me-2"></i>Edit
+                </a>
+                <a href="#" class="d-flex align-items-center px-3 py-2 text-decoration-none text-danger rounded-2 delete-link">
+                    <i class="bi bi-trash me-2"></i>Hapus
+                </a>
+            </div>
+        </div>
+
+        <!-- Bulk Delete Button -->
+        <div id="bulkActions" class="position-fixed bottom-0 start-50 translate-middle-x mb-4 bg-white shadow-lg rounded-pill px-4 py-2" style="display: none; z-index: 1000;">
+            <button class="btn btn-danger btn-sm" onclick="confirmBulkDelete()">
+                <i class="bi bi-trash me-2"></i>Hapus <span id="selectedCount">0</span> data terpilih
+            </button>
+        </div>
+
+        <style>
+            tr.cursor-pointer { cursor: pointer; }
+            tr.cursor-pointer:hover { background-color: rgba(0,0,0,0.02); }
+            #contextMenu { min-width: 150px; }
+            #contextMenu a:hover { background-color: rgba(0,0,0,0.05); }
+            .selected-row { background-color: rgba(0,123,255,0.1) !important; }
+            .context-menu-active { background-color: rgba(0,123,255,0.1) !important; }
+        </style>
+
+        <script>
+            let contextMenu = document.getElementById('contextMenu');
+            let bulkActions = document.getElementById('bulkActions');
+            let selectedIds = new Set();
+            let activeRow = null;
+
+            // Context Menu
+            function showContextMenu(event, id, nama) {
+                event.preventDefault();
+                
+                // Remove active class from previous row
+                if (activeRow) activeRow.classList.remove('context-menu-active');
+                
+                // Add active class to current row
+                activeRow = event.currentTarget;
+                activeRow.classList.add('context-menu-active');
+
+                // Set menu header
+                contextMenu.querySelector('.dropdown-header').textContent = nama;
+
+                // Set up menu links
+                const editLink = contextMenu.querySelector('.edit-link');
+                const deleteLink = contextMenu.querySelector('.delete-link');
+                
+                editLink.href = `/siswa/${id}/edit`;
+                deleteLink.setAttribute('data-bs-toggle', 'modal');
+                deleteLink.setAttribute('data-bs-target', `#deleteModal${id}`);
+
+                // Position menu at cursor
+                contextMenu.style.display = 'block';
+                
+                // Adjust menu position to keep it in viewport
+                const menuWidth = contextMenu.offsetWidth;
+                const menuHeight = contextMenu.offsetHeight;
+                const windowWidth = window.innerWidth;
+                const windowHeight = window.innerHeight;
+                
+                let left = event.pageX;
+                let top = event.pageY;
+                
+                if (left + menuWidth > windowWidth) {
+                    left = windowWidth - menuWidth;
+                }
+                
+                if (top + menuHeight > windowHeight) {
+                    top = windowHeight - menuHeight;
+                }
+                
+                contextMenu.style.left = left + 'px';
+                contextMenu.style.top = top + 'px';
+            }
+
+            // Hide context menu when clicking outside
+            document.addEventListener('click', (event) => {
+                if (!contextMenu.contains(event.target)) {
+                    contextMenu.style.display = 'none';
+                    if (activeRow) {
+                        activeRow.classList.remove('context-menu-active');
+                        activeRow = null;
+                    }
+                }
+            });
+
+            // Prevent default context menu
+            document.addEventListener('contextmenu', (event) => {
+                if (!event.target.closest('tr[data-id]')) {
+                    contextMenu.style.display = 'none';
+                    if (activeRow) {
+                        activeRow.classList.remove('context-menu-active');
+                        activeRow = null;
+                    }
+                }
+            });
+
+            // Close context menu on scroll
+            document.addEventListener('scroll', () => {
+                contextMenu.style.display = 'none';
+                if (activeRow) {
+                    activeRow.classList.remove('context-menu-active');
+                    activeRow = null;
+                }
+            });
+
+            // Checkbox handling
+            document.getElementById('selectAll').addEventListener('change', function() {
+                document.querySelectorAll('.row-checkbox').forEach(checkbox => {
+                    checkbox.checked = this.checked;
+                    handleCheckboxChange(checkbox);
+                });
+            });
+
+            document.querySelectorAll('.row-checkbox').forEach(checkbox => {
+                checkbox.addEventListener('change', function() {
+                    handleCheckboxChange(this);
+                });
+            });
+
+            function handleCheckboxChange(checkbox) {
+                const row = checkbox.closest('tr');
+                if (checkbox.checked) {
+                    selectedIds.add(checkbox.value);
+                    row.classList.add('selected-row');
+                } else {
+                    selectedIds.delete(checkbox.value);
+                    row.classList.remove('selected-row');
+                }
+                
+                document.getElementById('selectedCount').textContent = selectedIds.size;
+                bulkActions.style.display = selectedIds.size > 0 ? 'block' : 'none';
+            }
+
+            function confirmBulkDelete() {
+                if (confirm(`Apakah anda yakin ingin menghapus ${selectedIds.size} data terpilih?`)) {
+                    // Here you would implement the bulk delete functionality
+                    // You can create a form and submit it to your bulk delete endpoint
+                    console.log('Deleting ids:', Array.from(selectedIds));
+                }
+            }
+
+            // Prevent row click when selecting text
+            document.addEventListener('mousedown', function(e) {
+                if (window.getSelection().toString()) {
+                    e.stopPropagation();
+                }
+            });
+        </script>
     </div>
 </div>
 @endsection
-
-@push('scripts')
-<script>
-    // ...existing code for form handling and dropdowns...
-</script>
-@endpush
