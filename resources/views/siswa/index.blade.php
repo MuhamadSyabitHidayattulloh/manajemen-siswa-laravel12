@@ -108,9 +108,9 @@
                     <span class="input-group-text bg-white border-end-0">
                         <i class="bi bi-search text-muted"></i>
                     </span>
-                    <input type="text" class="form-control border-start-0 ps-0" 
-                           name="search" 
-                           value="{{ request('search') }}" 
+                    <input type="text" class="form-control border-start-0 ps-0"
+                           name="search"
+                           value="{{ request('search') }}"
                            placeholder="Cari berdasarkan NIS, Nama, atau Alamat...">
                     @if(request('search'))
                         <a href="{{ route('siswa.index') }}" class="btn btn-outline-secondary">
@@ -164,7 +164,7 @@
                                 </div>
                             </th>
                             <th>
-                                <a href="{{ route('siswa.index', ['sort' => 'nis', 'direction' => $sort === 'nis' && $direction === 'asc' ? 'desc' : 'asc'] + request()->except(['sort', 'direction'])) }}" 
+                                <a href="{{ route('siswa.index', ['sort' => 'nis', 'direction' => $sort === 'nis' && $direction === 'asc' ? 'desc' : 'asc'] + request()->except(['sort', 'direction'])) }}"
                                    class="text-decoration-none text-dark d-flex align-items-center gap-1">
                                     NIS
                                     @if($sort === 'nis')
@@ -189,7 +189,7 @@
                                     <ul class="dropdown-menu">
                                         <li><a class="dropdown-item {{ empty(request('kelas')) ? 'active' : '' }}" href="{{ route('siswa.index', request()->except('kelas')) }}">Semua</a></li>
                                         @foreach(['10', '11', '12'] as $k)
-                                            <li><a class="dropdown-item {{ request('kelas') == $k ? 'active' : '' }}" 
+                                            <li><a class="dropdown-item {{ request('kelas') == $k ? 'active' : '' }}"
                                                   href="{{ route('siswa.index', ['kelas' => $k] + request()->except('kelas')) }}">Kelas {{ $k }}</a></li>
                                         @endforeach
                                     </ul>
@@ -213,7 +213,7 @@
                                             ];
                                         @endphp
                                         @foreach($jurusanList as $key => $label)
-                                            <li><a class="dropdown-item {{ request('jurusan') == $key ? 'active' : '' }}" 
+                                            <li><a class="dropdown-item {{ request('jurusan') == $key ? 'active' : '' }}"
                                                   href="{{ route('siswa.index', ['jurusan' => $key] + request()->except('jurusan')) }}">{{ $label }}</a></li>
                                         @endforeach
                                     </ul>
@@ -226,9 +226,9 @@
                                     </button>
                                     <ul class="dropdown-menu">
                                         <li><a class="dropdown-item {{ empty(request('jenis_kelamin')) ? 'active' : '' }}" href="{{ route('siswa.index', request()->except('jenis_kelamin')) }}">Semua</a></li>
-                                        <li><a class="dropdown-item {{ request('jenis_kelamin') == 'laki-laki' ? 'active' : '' }}" 
+                                        <li><a class="dropdown-item {{ request('jenis_kelamin') == 'laki-laki' ? 'active' : '' }}"
                                               href="{{ route('siswa.index', ['jenis_kelamin' => 'laki-laki'] + request()->except('jenis_kelamin')) }}">Laki-laki</a></li>
-                                        <li><a class="dropdown-item {{ request('jenis_kelamin') == 'perempuan' ? 'active' : '' }}" 
+                                        <li><a class="dropdown-item {{ request('jenis_kelamin') == 'perempuan' ? 'active' : '' }}"
                                               href="{{ route('siswa.index', ['jenis_kelamin' => 'perempuan'] + request()->except('jenis_kelamin')) }}">Perempuan</a></li>
                                     </ul>
                                 </div>
@@ -238,7 +238,7 @@
                     </thead>
                     <tbody>
                         @foreach($siswa as $s)
-                            <tr class="cursor-pointer" 
+                            <tr class="cursor-pointer"
                                 data-id="{{ $s->id }}"
                                 onclick="window.location='{{ route('siswa.show', $s->id) }}'"
                                 oncontextmenu="showContextMenu(event, {{ $s->id }}, '{{ $s->nama }}'); return false;">
@@ -304,6 +304,38 @@
             </button>
         </div>
 
+        <!-- Delete Modal for each row -->
+        @foreach($siswa as $s)
+            <div class="modal fade" id="deleteModal{{ $s->id }}" tabindex="-1">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Konfirmasi Hapus</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <p>Apakah anda yakin ingin menghapus data siswa <strong>{{ $s->nama }}</strong>?</p>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                            <form action="{{ route('siswa.destroy', $s->id) }}" method="POST" class="d-inline">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="btn btn-danger">Hapus</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        @endforeach
+
+        <!-- Bulk Delete Form -->
+        <form id="bulkDeleteForm" action="{{ route('siswa.destroy', 'bulk') }}" method="POST" class="d-none">
+            @csrf
+            @method('DELETE')
+            <input type="hidden" name="ids" id="bulkDeleteIds">
+        </form>
+
         <style>
             tr.cursor-pointer { cursor: pointer; }
             tr.cursor-pointer:hover { background-color: rgba(0,0,0,0.02); }
@@ -322,10 +354,10 @@
             // Context Menu
             function showContextMenu(event, id, nama) {
                 event.preventDefault();
-                
+
                 // Remove active class from previous row
                 if (activeRow) activeRow.classList.remove('context-menu-active');
-                
+
                 // Add active class to current row
                 activeRow = event.currentTarget;
                 activeRow.classList.add('context-menu-active');
@@ -336,31 +368,31 @@
                 // Set up menu links
                 const editLink = contextMenu.querySelector('.edit-link');
                 const deleteLink = contextMenu.querySelector('.delete-link');
-                
+
                 editLink.href = `/siswa/${id}/edit`;
                 deleteLink.setAttribute('data-bs-toggle', 'modal');
                 deleteLink.setAttribute('data-bs-target', `#deleteModal${id}`);
 
                 // Position menu at cursor
                 contextMenu.style.display = 'block';
-                
+
                 // Adjust menu position to keep it in viewport
                 const menuWidth = contextMenu.offsetWidth;
                 const menuHeight = contextMenu.offsetHeight;
                 const windowWidth = window.innerWidth;
                 const windowHeight = window.innerHeight;
-                
+
                 let left = event.pageX;
                 let top = event.pageY;
-                
+
                 if (left + menuWidth > windowWidth) {
                     left = windowWidth - menuWidth;
                 }
-                
+
                 if (top + menuHeight > windowHeight) {
                     top = windowHeight - menuHeight;
                 }
-                
+
                 contextMenu.style.left = left + 'px';
                 contextMenu.style.top = top + 'px';
             }
@@ -419,18 +451,27 @@
                     selectedIds.delete(checkbox.value);
                     row.classList.remove('selected-row');
                 }
-                
+
                 document.getElementById('selectedCount').textContent = selectedIds.size;
                 bulkActions.style.display = selectedIds.size > 0 ? 'block' : 'none';
             }
 
             function confirmBulkDelete() {
                 if (confirm(`Apakah anda yakin ingin menghapus ${selectedIds.size} data terpilih?`)) {
-                    // Here you would implement the bulk delete functionality
-                    // You can create a form and submit it to your bulk delete endpoint
-                    console.log('Deleting ids:', Array.from(selectedIds));
+                    document.getElementById('bulkDeleteIds').value = Array.from(selectedIds).join(',');
+                    document.getElementById('bulkDeleteForm').submit();
                 }
             }
+
+            // Add click handler for delete links in context menu
+            document.querySelectorAll('.delete-link').forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const modalId = this.getAttribute('data-bs-target');
+                    const modal = new bootstrap.Modal(document.querySelector(modalId));
+                    modal.show();
+                });
+            });
 
             // Prevent row click when selecting text
             document.addEventListener('mousedown', function(e) {

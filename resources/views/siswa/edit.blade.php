@@ -25,7 +25,7 @@
                         </div>
                     @endif
 
-                    <form action="{{ route('siswa.update', $siswa->id) }}" method="POST">
+                    <form action="{{ route('siswa.update', $siswa->id) }}" method="POST" class="needs-validation" novalidate>
                         @csrf
                         @method('PUT')
                         <div class="mb-3">
@@ -58,28 +58,37 @@
                             </select>
                         </div>
                         <div class="mb-3">
-                            <label for="jenis_kelamin" class="form-label"><i class="bi bi-gender-ambiguous me-1"></i> Jenis Kelamin</label>
-                            <select class="form-control" id="jenis_kelamin" name="jenis_kelamin" required>
-                                <option value="">Pilih Jenis Kelamin</option>
-                                <option value="laki-laki" {{ $siswa->jenis_kelamin == 'laki-laki' ? 'selected' : '' }}>Laki-laki</option>
-                                <option value="perempuan" {{ $siswa->jenis_kelamin == 'perempuan' ? 'selected' : '' }}>Perempuan</option>
-                            </select>
+                            <label class="form-label d-block"><i class="bi bi-gender-ambiguous me-1"></i> Jenis Kelamin</label>
+                            <div class="d-flex gap-4 mt-2">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="jenis_kelamin" id="gender-male" value="laki-laki" {{ $siswa->jenis_kelamin == 'laki-laki' ? 'checked' : '' }} required>
+                                    <label class="form-check-label" for="gender-male">
+                                        <i class="bi bi-gender-male text-primary"></i> Laki-laki
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="jenis_kelamin" id="gender-female" value="perempuan" {{ $siswa->jenis_kelamin == 'perempuan' ? 'checked' : '' }} required>
+                                    <label class="form-check-label" for="gender-female">
+                                        <i class="bi bi-gender-female text-danger"></i> Perempuan
+                                    </label>
+                                </div>
+                            </div>
                         </div>
                         <div class="mb-3">
                             <label for="alamat" class="form-label"><i class="bi bi-geo-alt me-1"></i> Alamat</label>
                             <textarea class="form-control" id="alamat" name="alamat" required>{{ $siswa->alamat }}</textarea>
                         </div>
+                        <div class="card-footer bg-light">
+                            <div class="d-flex justify-content-end gap-2">
+                                <a href="{{ route('siswa.index') }}" class="btn btn-secondary">
+                                    <i class="bi bi-arrow-left me-1"></i>Kembali
+                                </a>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="bi bi-check-lg me-1"></i>Update
+                                </button>
+                            </div>
+                        </div>
                     </form>
-                </div>
-                <div class="card-footer bg-light">
-                    <div class="d-flex justify-content-end gap-2">
-                        <a href="{{ route('siswa.index') }}" class="btn btn-secondary">
-                            <i class="bi bi-arrow-left me-1"></i>Kembali
-                        </a>
-                        <button type="submit" class="btn btn-primary">
-                            <i class="bi bi-check-lg me-1"></i>Update
-                        </button>
-                    </div>
                 </div>
             </div>
         </div>

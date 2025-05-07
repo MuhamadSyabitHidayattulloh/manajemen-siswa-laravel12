@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title') - Manajemen Siswa</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
@@ -47,6 +48,7 @@
             width: 70px;
             z-index: 1040;
             transition: all 0.35s ease-in-out;
+            background: linear-gradient(180deg, var(--sidebar-bg) 0%, var(--body-bg) 100%);
         }
 
         .sidebar:hover {
@@ -77,6 +79,8 @@
         .sidebar .sidebar-link {
             justify-content: center;
             padding: 0.75rem;
+            margin: 0.3rem 0.8rem;
+            border-radius: 0.8rem;
         }
 
         .sidebar:hover .sidebar-link {
@@ -100,6 +104,11 @@
             border-color: var(--border-color);
             border-radius: 0.75rem;
             box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
         }
 
         .card-header {
@@ -122,12 +131,17 @@
             background-color: #ffffff;
             border-color: var(--border-color);
             color: var(--text-primary);
+            transition: all 0.2s ease;
         }
 
         .form-control:focus, .form-select:focus {
             background-color: #ffffff;
             border-color: var(--bs-primary);
             color: var(--text-primary);
+        }
+
+        .form-control:hover, .form-select:hover {
+            border-color: var(--bs-primary);
         }
 
         .input-group-text {
@@ -140,11 +154,17 @@
             padding: 0.625rem 1.25rem;
             border-radius: 0.5rem;
             font-weight: 500;
+            transition: all 0.3s ease;
         }
 
         .btn-sm {
             padding: 0.375rem 0.75rem;
             border-radius: 0.375rem;
+        }
+
+        .btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
         }
 
         .table {
@@ -211,7 +231,7 @@
         }
 
         .fade-in {
-            animation: fadeIn .5s ease-in;
+            animation: fadeIn 0.4s ease-out;
         }
 
         @keyframes fadeIn {
@@ -334,11 +354,14 @@
         }
 
         .stat-card {
-            transition: transform 0.2s;
+            transition: all 0.3s ease;
+            border-radius: 1rem;
+            overflow: hidden;
         }
 
         .stat-card:hover {
-            transform: translateY(-3px);
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.08);
         }
     </style>
 </head>
@@ -360,7 +383,7 @@
 
             <!-- Dashboard Section -->
             <div class="sidebar-heading">Dashboard</div>
-            <a href="{{ route('siswa.index') }}" 
+            <a href="{{ route('siswa.index') }}"
                class="sidebar-link {{ request()->routeIs('siswa.index') ? 'active' : '' }}"
                title="Overview">
                 <i class="bi bi-speedometer2"></i>
@@ -369,13 +392,13 @@
 
             <!-- Manajemen Siswa Section -->
             <div class="sidebar-heading">Manajemen Siswa</div>
-            <a href="{{ route('siswa.index') }}" 
+            <a href="{{ route('siswa.index') }}"
                class="sidebar-link {{ request()->routeIs('siswa.index') && !request()->query() ? 'active' : '' }}"
                title="Daftar Siswa">
                 <i class="bi bi-people-fill"></i>
                 <span class="link-text ms-2">Daftar Siswa</span>
             </a>
-            <a href="{{ route('siswa.create') }}" 
+            <a href="{{ route('siswa.create') }}"
                class="sidebar-link {{ request()->routeIs('siswa.create') ? 'active' : '' }}"
                title="Tambah Siswa">
                 <i class="bi bi-person-plus-fill"></i>
@@ -384,13 +407,13 @@
 
             <!-- Filter Section -->
             <div class="sidebar-heading">Filter Cepat</div>
-            <a href="{{ route('siswa.index', ['jenis_kelamin' => 'laki-laki']) }}" 
+            <a href="{{ route('siswa.index', ['jenis_kelamin' => 'laki-laki']) }}"
                class="sidebar-link {{ request('jenis_kelamin') == 'laki-laki' ? 'active' : '' }}"
                title="Siswa Laki-laki">
                 <i class="bi bi-gender-male"></i>
                 <span class="link-text ms-2">Siswa Laki-laki</span>
             </a>
-            <a href="{{ route('siswa.index', ['jenis_kelamin' => 'perempuan']) }}" 
+            <a href="{{ route('siswa.index', ['jenis_kelamin' => 'perempuan']) }}"
                class="sidebar-link {{ request('jenis_kelamin') == 'perempuan' ? 'active' : '' }}"
                title="Siswa Perempuan">
                 <i class="bi bi-gender-female"></i>
@@ -400,7 +423,7 @@
             <!-- Kelas Section -->
             <div class="sidebar-heading">Kelas</div>
             @foreach(['10', '11', '12'] as $kelas)
-                <a href="{{ route('siswa.index', ['kelas' => $kelas]) }}" 
+                <a href="{{ route('siswa.index', ['kelas' => $kelas]) }}"
                    class="sidebar-link {{ request('kelas') == $kelas ? 'active' : '' }}"
                    title="Kelas {{ $kelas }}">
                     <i class="bi bi-mortarboard"></i>

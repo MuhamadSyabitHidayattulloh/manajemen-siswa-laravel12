@@ -19,7 +19,7 @@ class SiswaController extends Controller
         $filters = $request->only(['search', 'kelas', 'jurusan', 'jenis_kelamin']);
         $sort = $request->get('sort', 'nama');
         $direction = $request->get('direction', 'asc');
-        
+
         if ($request->has('export')) {
             if ($request->export === 'excel') {
                 return Excel::download(new SiswaExport($filters), 'daftar_siswa.xlsx');
@@ -27,7 +27,7 @@ class SiswaController extends Controller
                 return (new SiswaPDFExport($filters))->download();
             }
         }
-        
+
         $siswa = Siswa::search($filters)
             ->orderBy($sort, $direction)
             ->paginate(10)
@@ -127,11 +127,16 @@ class SiswaController extends Controller
      */
     public function destroy(string $id)
     {
-        // Fetch the student by ID
+        if ($id === 'bulk') {
+            $ids = explode(',', request('ids'));
+            Siswa::whereIn('id', $ids)->delete();
+            return redirect()->route('siswa.index')
+                ->with('success', count($ids) . ' data siswa berhasil dihapus.');
+        }
+
         $siswa = Siswa::findOrFail($id);
-        // Delete the student record
         $siswa->delete();
-        // Redirect to the index page with a success message
-        return redirect()->route('siswa.index')->with('success', 'Siswa deleted successfully.');
+        return redirect()->route('siswa.index')
+            ->with('success', "Data siswa {$siswa->nama} berhasil dihapus.");
     }
 }
