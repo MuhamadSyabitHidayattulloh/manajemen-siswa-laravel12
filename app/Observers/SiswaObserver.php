@@ -22,9 +22,32 @@ class SiswaObserver
         $this->clearCache();
     }
 
+    public function restored(Siswa $siswa)
+    {
+        $this->clearCache();
+    }
+
+    public function forceDeleted(Siswa $siswa)
+    {
+        $this->clearCache();
+    }
+
     private function clearCache()
     {
-        Cache::forget('siswa_stats');
-        Cache::forget('siswa_list');
+        // Clear using cache tags
+        Cache::tags(['siswa', 'statistics'])->flush();
+
+        // Clear specific caches that might not be tagged
+        $keysToForget = [
+            'siswa_stats',
+            'total_siswa',
+            'total_by_gender',
+            'total_by_jurusan',
+            'total_by_kelas',
+        ];
+
+        foreach ($keysToForget as $key) {
+            Cache::forget($key);
+        }
     }
 }

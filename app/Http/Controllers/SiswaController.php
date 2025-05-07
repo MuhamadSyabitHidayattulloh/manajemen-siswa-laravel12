@@ -17,12 +17,14 @@ class SiswaController extends Controller
      */
     public function index(Request $request)
     {
-        $filters = $request->only(['search', 'kelas', 'jurusan', 'jenis_kelamin']);
-        $sort = $request->get('sort', 'nama');
-        $direction = $request->get('direction', 'asc');
-        $filters['sort'] = $sort;
-        $filters['direction'] = $direction;
+        // Collect all filters including search
+        $filters = $request->only(['search', 'kelas', 'jurusan', 'jenis_kelamin', 'sort', 'direction']);
+        
+        // Set default sorting if not provided
+        $filters['sort'] = $request->get('sort', 'nama');
+        $filters['direction'] = $request->get('direction', 'asc');
 
+        // Handle exports with filters
         if ($request->has('export')) {
             if ($request->export === 'excel') {
                 return Excel::download(new SiswaExport($filters), 'daftar_siswa.xlsx');
@@ -31,19 +33,15 @@ class SiswaController extends Controller
             }
         }
 
-        // Clear the cache when filters are applied
-        if (!empty($filters)) {
-            Cache::forget('siswa_list');
-        }
-
-        $siswa = Cache::remember('siswa_list', 60 * 5, function () use ($filters) {
-            return Siswa::search($filters)
-                ->paginate(10)
-                ->withQueryString();
+        // Get cached data
+        $cacheKey = 'siswa_' . md5(serialize($filters) . $request->get('page', 1));
+        
+        $siswa = Cache::remember($cacheKey, 600, function () use ($filters) {
+            return Siswa::search($filters)->paginate(10)->withQueryString();
         });
 
-        // Cache statistics for 5 minutes
-        $statistics = Cache::remember('siswa_stats', 60 * 5, function () {
+        // Get statistics
+        $statistics = Cache::remember('siswa_stats', 600, function () {
             return [
                 'totalSiswa' => Siswa::count(),
                 'totalKelas' => Siswa::distinct('kelas')->count('kelas'),
@@ -54,7 +52,7 @@ class SiswaController extends Controller
         });
 
         return view('siswa.index', array_merge(
-            compact('siswa', 'filters', 'sort', 'direction'),
+            compact('siswa', 'filters'),
             $statistics
         ));
     }

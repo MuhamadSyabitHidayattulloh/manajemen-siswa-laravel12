@@ -6,57 +6,96 @@
 <div class="container fade-in">
     <div class="row justify-content-center">
         <div class="col-md-8">
-            <div class="card shadow-lg">
-                <div class="card-header bg-primary bg-gradient p-3">
-                    <div class="d-flex align-items-center">
-                        <h4 class="mb-0 text-white">
-                            <i class="bi bi-person-plus-fill me-2"></i>Tambah Siswa Baru
-                        </h4>
+            <div class="card shadow-lg border-0 overflow-hidden">
+                <div class="card-header p-4 position-relative" 
+                     style="background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%)">
+                    <div class="d-flex justify-content-between align-items-center position-relative z-1">
+                        <div>
+                            <h4 class="text-white mb-1">
+                                <i class="bi bi-person-plus-fill me-2"></i>Tambah Siswa
+                            </h4>
+                            <div class="text-white-50">Silakan lengkapi form di bawah ini</div>
+                        </div>
+                        <a href="{{ route('siswa.index') }}"
+                           class="btn btn-outline-light px-3">
+                            <i class="bi bi-arrow-left me-2"></i>Kembali
+                        </a>
+                    </div>
+                    <div class="position-absolute top-50 end-0 translate-middle-y opacity-25">
+                        <i class="bi bi-person-plus display-1 text-white"></i>
                     </div>
                 </div>
+
                 <div class="card-body p-4">
                     @if($errors->any())
-                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                            <i class="bi bi-exclamation-triangle me-2"></i>
-                            <strong>Error!</strong>
+                        <div class="alert alert-danger alert-dismissible fade show border-0 shadow-sm mb-4" role="alert">
+                            <div class="d-flex gap-3">
+                                <div class="alert-icon">
+                                    <i class="bi bi-exclamation-triangle-fill fs-4"></i>
+                                </div>
+                                <div>
+                                    <h6 class="alert-heading mb-1">Oops! Ada beberapa kesalahan</h6>
+                                    <ul class="mb-0 ps-3">
+                                        @foreach($errors->all() as $error)
+                                            <li>{{ $error }}</li>
+                                        @endforeach
+                                    </ul>
+                                </div>
+                            </div>
                             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                            <ul class="mb-0 mt-2">
-                                @foreach($errors->all() as $error)
-                                    <li>{{ $error }}</li>
-                                @endforeach
-                            </ul>
                         </div>
                     @endif
 
                     <form action="{{ route('siswa.store') }}" method="POST" class="needs-validation" novalidate>
                         @csrf
-                        <div class="row g-3">
+                        <div class="row g-4">
                             <div class="col-md-6">
-                                <div class="form-floating mb-3">
-                                    <input type="number" class="form-control" id="nis" name="nis" required>
-                                    <label for="nis"><i class="bi bi-hash"></i> NIS</label>
+                                <div class="form-floating">
+                                    <input type="number" 
+                                           class="form-control form-control-lg bg-light border-0 shadow-sm" 
+                                           id="nis" 
+                                           name="nis" 
+                                           placeholder="NIS"
+                                           value="{{ old('nis') }}"
+                                           required>
+                                    <label for="nis"><i class="bi bi-hash me-1"></i>NIS</label>
+                                    <div class="invalid-feedback">
+                                        Mohon masukkan NIS siswa
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-floating">
+                                    <input type="text" 
+                                           class="form-control form-control-lg bg-light border-0 shadow-sm" 
+                                           id="nama" 
+                                           name="nama" 
+                                           placeholder="Nama"
+                                           value="{{ old('nama') }}"
+                                           required>
+                                    <label for="nama"><i class="bi bi-person me-1"></i>Nama</label>
+                                    <div class="invalid-feedback">
+                                        Mohon masukkan nama siswa
+                                    </div>
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="form-floating mb-3">
-                                    <input type="text" class="form-control" id="nama" name="nama" required>
-                                    <label for="nama"><i class="bi bi-person"></i> Nama</label>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="form-floating mb-3">
-                                    <select class="form-control" id="kelas" name="kelas" required>
+                                    <select class="form-control form-control-lg bg-light border-0 shadow-sm" id="kelas" name="kelas" required>
                                         <option value="">Pilih Kelas</option>
                                         <option value="10">Kelas 10</option>
                                         <option value="11">Kelas 11</option>
                                         <option value="12">Kelas 12</option>
                                     </select>
                                     <label for="kelas"><i class="bi bi-mortarboard"></i> Kelas</label>
+                                    <div class="invalid-feedback">
+                                        Mohon pilih kelas siswa
+                                    </div>
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="form-floating mb-3">
-                                    <select class="form-control" id="jurusan" name="jurusan" required>
+                                    <select class="form-control form-control-lg bg-light border-0 shadow-sm" id="jurusan" name="jurusan" required>
                                         <option value="">Pilih Jurusan</option>
                                         <option value="br">Bisnis Ritel (BR)</option>
                                         <option value="dkv1">Desain Komunikasi Visual 1 (DKV 1)</option>
@@ -66,6 +105,9 @@
                                         <option value="ak">Akuntansi (AK)</option>
                                     </select>
                                     <label for="jurusan"><i class="bi bi-book"></i> Jurusan</label>
+                                    <div class="invalid-feedback">
+                                        Mohon pilih jurusan siswa
+                                    </div>
                                 </div>
                             </div>
                             <div class="col-md-6">
@@ -85,24 +127,26 @@
                                             </label>
                                         </div>
                                     </div>
+                                    <div class="invalid-feedback">
+                                        Mohon pilih jenis kelamin siswa
+                                    </div>
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="form-floating mb-3">
-                                    <textarea class="form-control" id="alamat" name="alamat" required></textarea>
+                                    <textarea class="form-control form-control-lg bg-light border-0 shadow-sm" id="alamat" name="alamat" placeholder="Alamat" required>{{ old('alamat') }}</textarea>
                                     <label for="alamat"><i class="bi bi-geo-alt"></i> Alamat</label>
+                                    <div class="invalid-feedback">
+                                        Mohon masukkan alamat siswa
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-
-                        <div class="card-footer bg-light p-3">
-                            <div class="d-flex justify-content-end gap-3">
-                                <a href="{{ route('siswa.index') }}" class="btn btn-secondary">
-                                    <i class="bi bi-arrow-left me-1"></i>Kembali
-                                </a>
-                                <button type="submit" class="btn btn-primary px-4">
-                                    <i class="bi bi-save me-1"></i>Simpan
-                                </button>
+                            <div class="col-12 mt-4">
+                                <div class="d-flex justify-content-end gap-3 mt-4">
+                                    <button type="submit" class="btn btn-primary btn-lg px-4">
+                                        <i class="bi bi-save me-2"></i>Simpan Data
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </form>
@@ -112,20 +156,27 @@
     </div>
 </div>
 
-<script>
-    // Form validation
-    (function () {
-        'use strict'
-        var forms = document.querySelectorAll('.needs-validation')
-        Array.prototype.slice.call(forms).forEach(function (form) {
-            form.addEventListener('submit', function (event) {
-                if (!form.checkValidity()) {
-                    event.preventDefault()
-                    event.stopPropagation()
-                }
-                form.classList.add('was-validated')
-            }, false)
-        })
-    })()
-</script>
+<style>
+.card {
+    transition: all 0.3s ease;
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 0.25rem rgba(var(--primary-rgb), 0.25);
+}
+
+.form-floating > label {
+    padding-left: 1rem;
+}
+
+.fade-in {
+    animation: fadeIn 0.5s ease-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+</style>
 @endsection

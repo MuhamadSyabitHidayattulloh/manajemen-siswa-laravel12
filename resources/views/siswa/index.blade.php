@@ -68,30 +68,6 @@
         </div>
     </div>
 
-    <div class="row mb-4">
-        <div class="col-md-6 mb-3 mb-md-0">
-            <h1 class="h3 mb-2 text-gray-800">
-                <i class="bi bi-people-fill text-primary me-2"></i>Daftar Siswa
-            </h1>
-            <p class="text-muted">Mengelola data siswa dengan mudah dan efisien</p>
-        </div>
-        <div class="col-md-6">
-            <div class="d-flex flex-wrap gap-2 justify-content-md-end">
-                <div class="btn-group">
-                    <a href="{{ route('siswa.index', array_merge($filters ?? [], ['export' => 'excel']))}}" class="btn btn-success shadow-sm">
-                        <i class="bi bi-file-earmark-excel-fill me-2"></i>Excel
-                    </a>
-                    <a href="{{ route('siswa.index', array_merge($filters ?? [], ['export' => 'pdf']))}}" class="btn btn-danger shadow-sm">
-                        <i class="bi bi-file-earmark-pdf-fill me-2"></i>PDF
-                    </a>
-                </div>
-                <a href="{{ route('siswa.create') }}" class="btn btn-primary shadow-sm">
-                    <i class="bi bi-plus-circle-fill me-2"></i>Tambah
-                </a>
-            </div>
-        </div>
-    </div>
-
     @if(session('success'))
         <div class="alert alert-success alert-dismissible fade show border-0 shadow-sm" role="alert">
             <i class="bi bi-check-circle-fill me-2"></i>
@@ -100,386 +76,548 @@
         </div>
     @endif
 
-    <!-- Search Box -->
-    <div class="card shadow-sm mb-4 border-0 rounded-3">
-        <div class="card-body p-3">
-            <form action="{{ route('siswa.index') }}" method="GET">
-                <div class="input-group">
-                    <span class="input-group-text bg-white border-end-0">
-                        <i class="bi bi-search text-muted"></i>
-                    </span>
-                    <input type="text" class="form-control border-start-0 ps-0"
-                           name="search"
-                           value="{{ request('search') }}"
-                           placeholder="Cari berdasarkan NIS, Nama, atau Alamat...">
-                    @if(request('search'))
-                        <a href="{{ route('siswa.index') }}" class="btn btn-outline-secondary">
-                            <i class="bi bi-x-lg"></i>
+    <!-- Enhanced Table -->
+    <div class="card shadow-lg border-0 rounded-4 overflow-hidden">
+        <!-- Enhanced Table Header -->
+        <div class="card-header border-0 bg-white p-4">
+            <div class="row g-3 align-items-center">
+                <div class="col-md-6">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="bg-primary bg-opacity-10 p-3 rounded-circle">
+                            <i class="bi bi-people-fill text-primary fs-4"></i>
+                        </div>
+                        <div>
+                            <h5 class="mb-1">Daftar Siswa</h5>
+                            <p class="text-muted mb-0">Total: {{ $siswa->total() }} siswa</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="d-flex gap-2 justify-content-md-end">
+                        <div class="btn-group">
+                            <a href="{{ route('siswa.index', array_merge($filters ?? [], ['export' => 'excel']))}}" class="btn btn-success shadow-sm">
+                                <i class="bi bi-file-earmark-excel-fill me-2"></i>Excel
+                            </a>
+                            <a href="{{ route('siswa.index', array_merge($filters ?? [], ['export' => 'pdf']))}}" class="btn btn-danger shadow-sm">
+                                <i class="bi bi-file-earmark-pdf-fill me-2"></i>PDF
+                            </a>
+                        </div>
+                        <a href="{{ route('siswa.create') }}" class="btn btn-primary shadow-sm">
+                            <i class="bi bi-plus-circle-fill me-2"></i>Tambah
                         </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Enhanced Search Box -->
+        <div class="card-body border-bottom p-4">
+            <form action="{{ route('siswa.index') }}" method="GET" id="searchForm">
+                <!-- Preserve existing filter parameters -->
+                @foreach(request()->except(['page', 'search']) as $key => $value)
+                    @if(is_array($value))
+                        @foreach($value as $arrayValue)
+                            <input type="hidden" name="{{ $key }}[]" value="{{ $arrayValue }}">
+                        @endforeach
+                    @else
+                        <input type="hidden" name="{{ $key }}" value="{{ $value }}">
                     @endif
+                @endforeach
+
+                <div class="row g-3">
+                    <div class="col-md-8">
+                        <div class="input-group">
+                            <span class="input-group-text bg-transparent border-end-0">
+                                <i class="bi bi-search"></i>
+                            </span>
+                            <input type="search" 
+                                   class="form-control border-start-0 ps-0" 
+                                   name="search"
+                                   value="{{ request('search') }}"
+                                   placeholder="Cari berdasarkan nama, NIS, atau alamat..."
+                                   onkeyup="submitSearch(event)">
+                            @if(request('search'))
+                                <a href="{{ route('siswa.index', request()->except('search')) }}" 
+                                   class="btn btn-outline-secondary">
+                                    <i class="bi bi-x-lg"></i>
+                                </a>
+                            @endif
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="d-flex gap-2">
+                            <button type="button" 
+                                    class="btn btn-light w-100" 
+                                    data-bs-toggle="modal" 
+                                    data-bs-target="#filterModal">
+                                <i class="bi bi-funnel me-2"></i>Filter
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </form>
         </div>
-    </div>
 
-    <!-- Jurusan Legend -->
-    <div class="card shadow-sm mb-4 border-0 rounded-3">
-        <div class="card-body">
-            <h6 class="mb-3"><i class="bi bi-info-circle me-2"></i>Keterangan Warna Jurusan:</h6>
-            <div class="d-flex flex-wrap gap-3">
-                <div class="d-flex align-items-center">
-                    <span class="badge bg-info rounded-pill me-2">BR</span>
-                    <small class="text-muted">Bisnis Ritel</small>
-                </div>
-                <div class="d-flex align-items-center">
-                    <span class="badge bg-warning rounded-pill me-2">DKV</span>
-                    <small class="text-muted">Desain Komunikasi Visual</small>
-                </div>
-                <div class="d-flex align-items-center">
-                    <span class="badge bg-success rounded-pill me-2">RPL</span>
-                    <small class="text-muted">Rekayasa Perangkat Lunak</small>
-                </div>
-                <div class="d-flex align-items-center">
-                    <span class="badge bg-primary rounded-pill me-2">MP</span>
-                    <small class="text-muted">Manajemen Perkantoran</small>
-                </div>
-                <div class="d-flex align-items-center">
-                    <span class="badge bg-danger rounded-pill me-2">AK</span>
-                    <small class="text-muted">Akuntansi</small>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- List View -->
-    <div class="card shadow-sm border-0 rounded-3">
-        <div class="card-body p-0">
-            <div class="table-responsive" style="min-width: 100%;">
-                <table class="table table-hover align-middle mb-0" style="min-width: 1200px;">
-                    <thead class="bg-light">
-                        <tr>
-                            <th>
+        <!-- Enhanced Table -->
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0" style="min-width: 1200px;">
+                <thead class="bg-light">
+                    <tr>
+                        <th>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="selectAll">
+                            </div>
+                        </th>
+                        <th>NIS</th>
+                        <th>Nama</th>
+                        <th>Kelas</th>
+                        <th>Jurusan</th>
+                        <th>Jenis Kelamin</th>
+                        <th>Alamat</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($siswa as $s)
+                        <tr class="cursor-pointer"
+                            data-id="{{ $s->id }}"
+                            onclick="window.location='{{ route('siswa.show', $s->id) }}'"
+                            oncontextmenu="showContextMenu(event, {{ $s->id }}, '{{ $s->nama }}'); return false;">
+                            <td onclick="event.stopPropagation()">
                                 <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" id="selectAll">
+                                    <input class="form-check-input row-checkbox" type="checkbox" value="{{ $s->id }}">
                                 </div>
-                            </th>
-                            <th>
-                                <a href="{{ route('siswa.index', ['sort' => 'nis', 'direction' => $sort === 'nis' && $direction === 'asc' ? 'desc' : 'asc'] + request()->except(['sort', 'direction'])) }}"
-                                   class="text-decoration-none text-dark d-flex align-items-center gap-1">
-                                    NIS
-                                    @if($sort === 'nis')
-                                        <i class="bi bi-arrow-{{ $direction === 'asc' ? 'up' : 'down' }}"></i>
-                                    @endif
-                                </a>
-                            </th>
-                            <th>
-                                <a href="{{ route('siswa.index', ['sort' => 'nama', 'direction' => $sort === 'nama' && $direction === 'asc' ? 'desc' : 'asc'] + request()->except(['sort', 'direction'])) }}"
-                                   class="text-decoration-none text-dark d-flex align-items-center gap-1">
-                                    Nama
-                                    @if($sort === 'nama')
-                                        <i class="bi bi-arrow-{{ $direction === 'asc' ? 'up' : 'down' }}"></i>
-                                    @endif
-                                </a>
-                            </th>
-                            <th>
-                                <div class="dropdown">
-                                    <button class="btn btn-link text-dark p-0 text-decoration-none dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                                        Kelas
-                                    </button>
-                                    <ul class="dropdown-menu">
-                                        <li><a class="dropdown-item {{ empty(request('kelas')) ? 'active' : '' }}" href="{{ route('siswa.index', request()->except('kelas')) }}">Semua</a></li>
-                                        @foreach(['10', '11', '12'] as $k)
-                                            <li><a class="dropdown-item {{ request('kelas') == $k ? 'active' : '' }}"
-                                                  href="{{ route('siswa.index', ['kelas' => $k] + request()->except('kelas')) }}">Kelas {{ $k }}</a></li>
-                                        @endforeach
-                                    </ul>
-                                </div>
-                            </th>
-                            <th>
-                                <div class="dropdown">
-                                    <button class="btn btn-link text-dark p-0 text-decoration-none dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                                        Jurusan
-                                    </button>
-                                    <ul class="dropdown-menu">
-                                        <li><a class="dropdown-item {{ empty(request('jurusan')) ? 'active' : '' }}" href="{{ route('siswa.index', request()->except('jurusan')) }}">Semua</a></li>
-                                        @php
-                                            $jurusanList = [
-                                                'br' => 'Bisnis Ritel',
-                                                'dkv1' => 'DKV 1',
-                                                'dkv2' => 'DKV 2',
-                                                'rpl' => 'RPL',
-                                                'mp' => 'MP',
-                                                'ak' => 'AK'
-                                            ];
-                                        @endphp
-                                        @foreach($jurusanList as $key => $label)
-                                            <li><a class="dropdown-item {{ request('jurusan') == $key ? 'active' : '' }}"
-                                                  href="{{ route('siswa.index', ['jurusan' => $key] + request()->except('jurusan')) }}">{{ $label }}</a></li>
-                                        @endforeach
-                                    </ul>
-                                </div>
-                            </th>
-                            <th>
-                                <div class="dropdown">
-                                    <button class="btn btn-link text-dark p-0 text-decoration-none dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                                        Jenis Kelamin
-                                    </button>
-                                    <ul class="dropdown-menu">
-                                        <li><a class="dropdown-item {{ empty(request('jenis_kelamin')) ? 'active' : '' }}" href="{{ route('siswa.index', request()->except('jenis_kelamin')) }}">Semua</a></li>
-                                        <li><a class="dropdown-item {{ request('jenis_kelamin') == 'laki-laki' ? 'active' : '' }}"
-                                              href="{{ route('siswa.index', ['jenis_kelamin' => 'laki-laki'] + request()->except('jenis_kelamin')) }}">Laki-laki</a></li>
-                                        <li><a class="dropdown-item {{ request('jenis_kelamin') == 'perempuan' ? 'active' : '' }}"
-                                              href="{{ route('siswa.index', ['jenis_kelamin' => 'perempuan'] + request()->except('jenis_kelamin')) }}">Perempuan</a></li>
-                                    </ul>
-                                </div>
-                            </th>
-                            <th>Alamat</th>
+                            </td>
+                            <td><span class="badge bg-secondary rounded-pill">{{ $s->nis }}</span></td>
+                            <td class="fw-semibold">{{ $s->nama }}</td>
+                            <td><span class="badge bg-light text-dark">{{ $s->kelas }}</span></td>
+                            <td>
+                                @switch($s->jurusan)
+                                    @case('br') <span class="badge bg-info rounded-pill">BR</span> @break
+                                    @case('dkv1') <span class="badge bg-warning rounded-pill">DKV 1</span> @break
+                                    @case('dkv2') <span class="badge bg-warning rounded-pill">DKV 2</span> @break
+                                    @case('rpl') <span class="badge bg-success rounded-pill">RPL</span> @break
+                                    @case('mp') <span class="badge bg-primary rounded-pill">MP</span> @break
+                                    @case('ak') <span class="badge bg-danger rounded-pill">AK</span> @break
+                                @endswitch
+                            </td>
+                            <td>
+                                <i class="bi {{ $s->jenis_kelamin == 'laki-laki' ? 'bi-gender-male text-primary' : 'bi-gender-female text-danger' }} me-1"></i>
+                                {{ ucfirst($s->jenis_kelamin) }}
+                            </td>
+                            <td class="text-muted">{{ $s->alamat }}</td>
                         </tr>
-                    </thead>
-                    <tbody>
-                        @foreach($siswa as $s)
-                            <tr class="cursor-pointer"
-                                data-id="{{ $s->id }}"
-                                onclick="window.location='{{ route('siswa.show', $s->id) }}'"
-                                oncontextmenu="showContextMenu(event, {{ $s->id }}, '{{ $s->nama }}'); return false;">
-                                <td onclick="event.stopPropagation()">
-                                    <div class="form-check">
-                                        <input class="form-check-input row-checkbox" type="checkbox" value="{{ $s->id }}">
-                                    </div>
-                                </td>
-                                <td><span class="badge bg-secondary rounded-pill">{{ $s->nis }}</span></td>
-                                <td class="fw-semibold">{{ $s->nama }}</td>
-                                <td><span class="badge bg-light text-dark">{{ $s->kelas }}</span></td>
-                                <td>
-                                    @switch($s->jurusan)
-                                        @case('br') <span class="badge bg-info rounded-pill">BR</span> @break
-                                        @case('dkv1') <span class="badge bg-warning rounded-pill">DKV 1</span> @break
-                                        @case('dkv2') <span class="badge bg-warning rounded-pill">DKV 2</span> @break
-                                        @case('rpl') <span class="badge bg-success rounded-pill">RPL</span> @break
-                                        @case('mp') <span class="badge bg-primary rounded-pill">MP</span> @break
-                                        @case('ak') <span class="badge bg-danger rounded-pill">AK</span> @break
-                                    @endswitch
-                                </td>
-                                <td>
-                                    <i class="bi {{ $s->jenis_kelamin == 'laki-laki' ? 'bi-gender-male text-primary' : 'bi-gender-female text-danger' }} me-1"></i>
-                                    {{ ucfirst($s->jenis_kelamin) }}
-                                </td>
-                                <td class="text-muted">{{ $s->alamat }}</td>
-                            </tr>
-                        @endforeach
-                    </tbody>
-                </table>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="card-footer">
+        <div class="row align-items-center">
+            <div class="col-md-6 text-muted small">
+                Menampilkan {{ $siswa->firstItem() ?? 0 }} sampai {{ $siswa->lastItem() ?? 0 }} dari {{ $siswa->total() }} data
+            </div>
+            <div class="col-md-6">
+                <div class="float-md-end">
+                    {{ $siswa->links('vendor.pagination.simple-bootstrap') }}
+                </div>
             </div>
         </div>
-        <div class="card-footer">
-            <div class="row align-items-center">
-                <div class="col-md-6 text-muted small">
-                    Menampilkan {{ $siswa->firstItem() ?? 0 }} sampai {{ $siswa->lastItem() ?? 0 }} dari {{ $siswa->total() }} data
-                </div>
-                <div class="col-md-6">
-                    <div class="float-md-end">
-                        {{ $siswa->links('vendor.pagination.simple-bootstrap') }}
+    </div>
+
+    <!-- Context Menu -->
+    <div id="contextMenu" class="position-fixed shadow-sm rounded-3" style="display: none; z-index: 1050; min-width: 200px; background: white;">
+        <div class="p-2">
+            <h6 class="dropdown-header px-2 text-muted"></h6>
+            <a href="#" class="d-flex align-items-center px-3 py-2 text-decoration-none text-dark rounded-2 edit-link">
+                <i class="bi bi-pencil me-2"></i>Edit
+            </a>
+            <a href="#" class="d-flex align-items-center px-3 py-2 text-decoration-none text-danger rounded-2 delete-link">
+                <i class="bi bi-trash me-2"></i>Hapus
+            </a>
+        </div>
+    </div>
+
+    <!-- Bulk Delete Button -->
+    <div id="bulkActions" class="position-fixed bottom-0 start-50 translate-middle-x mb-4 bg-white shadow-lg rounded-pill px-4 py-2" style="display: none; z-index: 1000;">
+        <button class="btn btn-danger btn-sm" onclick="confirmBulkDelete()">
+            <i class="bi bi-trash me-2"></i>Hapus <span id="selectedCount">0</span> data terpilih
+        </button>
+    </div>
+
+    <!-- Delete Modal for each row -->
+    @foreach($siswa as $s)
+        <div class="modal fade" id="deleteModal{{ $s->id }}" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Konfirmasi Hapus</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p>Apakah anda yakin ingin menghapus data siswa <strong>{{ $s->nama }}</strong>?</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                        <form action="{{ route('siswa.destroy', $s->id) }}" method="POST" class="d-inline">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="btn btn-danger">Hapus</button>
+                        </form>
                     </div>
                 </div>
             </div>
         </div>
+    @endforeach
 
-        <!-- Context Menu -->
-        <div id="contextMenu" class="position-fixed shadow-sm rounded-3" style="display: none; z-index: 1050; min-width: 200px; background: white;">
-            <div class="p-2">
-                <h6 class="dropdown-header px-2 text-muted"></h6>
-                <a href="#" class="d-flex align-items-center px-3 py-2 text-decoration-none text-dark rounded-2 edit-link">
-                    <i class="bi bi-pencil me-2"></i>Edit
-                </a>
-                <a href="#" class="d-flex align-items-center px-3 py-2 text-decoration-none text-danger rounded-2 delete-link">
-                    <i class="bi bi-trash me-2"></i>Hapus
-                </a>
-            </div>
-        </div>
+    <!-- Bulk Delete Form -->
+    <form id="bulkDeleteForm" action="{{ route('siswa.destroy', 'bulk') }}" method="POST" class="d-none">
+        @csrf
+        @method('DELETE')
+        <input type="hidden" name="ids" id="bulkDeleteIds">
+    </form>
 
-        <!-- Bulk Delete Button -->
-        <div id="bulkActions" class="position-fixed bottom-0 start-50 translate-middle-x mb-4 bg-white shadow-lg rounded-pill px-4 py-2" style="display: none; z-index: 1000;">
-            <button class="btn btn-danger btn-sm" onclick="confirmBulkDelete()">
-                <i class="bi bi-trash me-2"></i>Hapus <span id="selectedCount">0</span> data terpilih
-            </button>
-        </div>
+    <!-- Add a floating action button for mobile -->
+    <div class="position-fixed bottom-0 end-0 m-4 d-md-none">
+        <a href="{{ route('siswa.create') }}" 
+           class="btn btn-primary btn-lg rounded-circle shadow-lg">
+            <i class="bi bi-plus-lg"></i>
+        </a>
+    </div>
 
-        <!-- Delete Modal for each row -->
-        @foreach($siswa as $s)
-            <div class="modal fade" id="deleteModal{{ $s->id }}" tabindex="-1">
-                <div class="modal-dialog">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title">Konfirmasi Hapus</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+    <!-- Enhanced Filter Modal -->
+    <div class="modal fade" id="filterModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="modal-title">
+                        <i class="bi bi-funnel me-2"></i>Filter & Pengurutan
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form action="{{ route('siswa.index') }}" method="GET" id="filterForm">
+                        <!-- Pengurutan -->
+                        <div class="mb-4">
+                            <label class="form-label text-muted">Urutkan Berdasarkan</label>
+                            <div class="row g-2">
+                                <div class="col-sm-8">
+                                    <select class="form-select" name="sort">
+                                        <option value="">Pilih kolom</option>
+                                        <option value="nama" {{ request('sort') == 'nama' ? 'selected' : '' }}>Nama Siswa</option>
+                                    </select>
+                                </div>
+                                <div class="col-sm-4">
+                                    <select class="form-select" name="direction">
+                                        <option value="asc" {{ request('direction') == 'asc' ? 'selected' : '' }}>A - Z</option>
+                                        <option value="desc" {{ request('direction') == 'desc' ? 'selected' : '' }}>Z - A</option>
+                                    </select>
+                                </div>
+                            </div>
                         </div>
-                        <div class="modal-body">
-                            <p>Apakah anda yakin ingin menghapus data siswa <strong>{{ $s->nama }}</strong>?</p>
+
+                        <hr class="text-muted">
+
+                        <!-- Kelas Filter -->
+                        <div class="mb-4">
+                            <label class="form-label text-muted">Kelas</label>
+                            <div class="select-tags">
+                                @foreach(['10', '11', '12'] as $k)
+                                    <input type="checkbox" class="btn-check" name="kelas[]" id="kelas{{ $k }}" 
+                                           value="{{ $k }}" {{ in_array($k, (array)request('kelas')) ? 'checked' : '' }}>
+                                    <label class="btn btn-outline-primary btn-sm mb-2 me-2" for="kelas{{ $k }}">
+                                        <i class="bi bi-mortarboard-fill me-1"></i>Kelas {{ $k }}
+                                    </label>
+                                @endforeach
+                            </div>
                         </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                            <form action="{{ route('siswa.destroy', $s->id) }}" method="POST" class="d-inline">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" class="btn btn-danger">Hapus</button>
-                            </form>
+
+                        <!-- Jurusan Filter -->
+                        <div class="mb-4">
+                            <label class="form-label text-muted">Jurusan</label>
+                            <div class="select-tags">
+                                @php
+                                    $jurusanColors = [
+                                        'br' => ['name' => 'Bisnis Ritel', 'color' => 'info'],
+                                        'dkv1' => ['name' => 'DKV 1', 'color' => 'warning'],
+                                        'dkv2' => ['name' => 'DKV 2', 'color' => 'warning'],
+                                        'rpl' => ['name' => 'RPL', 'color' => 'success'],
+                                        'mp' => ['name' => 'MP', 'color' => 'primary'],
+                                        'ak' => ['name' => 'AK', 'color' => 'danger']
+                                    ];
+                                @endphp
+                                @foreach($jurusanColors as $key => $data)
+                                    <input type="checkbox" class="btn-check" name="jurusan[]" id="jurusan{{ $key }}"
+                                           value="{{ $key }}" {{ in_array($key, (array)request('jurusan')) ? 'checked' : '' }}>
+                                    <label class="btn btn-outline-{{ $data['color'] }} btn-sm mb-2 me-2" for="jurusan{{ $key }}">
+                                        <i class="bi bi-book-fill me-1"></i>{{ $data['name'] }}
+                                    </label>
+                                @endforeach
+                            </div>
                         </div>
-                    </div>
+
+                        <!-- Jenis Kelamin Filter -->
+                        <div class="mb-4">
+                            <label class="form-label text-muted">Jenis Kelamin</label>
+                            <div class="select-tags">
+                                <input type="checkbox" class="btn-check" name="jenis_kelamin[]" id="gender_l" 
+                                       value="laki-laki" {{ in_array('laki-laki', (array)request('jenis_kelamin')) ? 'checked' : '' }}>
+                                <label class="btn btn-outline-primary btn-sm mb-2 me-2" for="gender_l">
+                                    <i class="bi bi-gender-male me-1"></i>Laki-laki
+                                </label>
+                                
+                                <input type="checkbox" class="btn-check" name="jenis_kelamin[]" id="gender_p" 
+                                       value="perempuan" {{ in_array('perempuan', (array)request('jenis_kelamin')) ? 'checked' : '' }}>
+                                <label class="btn btn-outline-danger btn-sm mb-2 me-2" for="gender_p">
+                                    <i class="bi bi-gender-female me-1"></i>Perempuan
+                                </label>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer border-0 pt-0">
+                    <a href="{{ route('siswa.index') }}" class="btn btn-light">
+                        <i class="bi bi-arrow-clockwise me-2"></i>Reset
+                    </a>
+                    <button type="submit" form="filterForm" class="btn btn-primary px-4">
+                        <i class="bi bi-funnel-fill me-2"></i>Terapkan Filter
+                    </button>
                 </div>
             </div>
-        @endforeach
+        </div>
+    </div>
 
-        <!-- Bulk Delete Form -->
-        <form id="bulkDeleteForm" action="{{ route('siswa.destroy', 'bulk') }}" method="POST" class="d-none">
-            @csrf
-            @method('DELETE')
-            <input type="hidden" name="ids" id="bulkDeleteIds">
-        </form>
+    <!-- Update Active Filters Display -->
+    @if(request('sort') || request('kelas') || request('jurusan') || request('jenis_kelamin'))
+        <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
+            <span class="text-muted">Filter aktif:</span>
+            @if(request('sort'))
+                <span class="badge bg-secondary rounded-pill">
+                    Urut: {{ request('sort') == 'nama' ? 'Nama' : '' }} ({{ request('direction') == 'asc' ? 'A-Z' : 'Z-A' }})
+                    <a href="{{ route('siswa.index', request()->except(['sort', 'direction'])) }}" 
+                       class="text-white text-decoration-none ms-1">&times;</a>
+                </span>
+            @endif
+            @if(request('kelas'))
+                @foreach((array)request('kelas') as $k)
+                    <span class="badge bg-primary rounded-pill">
+                        Kelas {{ $k }}
+                        <a href="{{ route('siswa.index', array_merge(
+                            request()->except('kelas'),
+                            ['kelas' => array_diff((array)request('kelas'), [$k])]
+                        )) }}" class="text-white text-decoration-none ms-1">&times;</a>
+                    </span>
+                @endforeach
+            @endif
+            @if(request('jurusan'))
+                @foreach((array)request('jurusan') as $j)
+                    <span class="badge bg-{{ $jurusanColors[$j]['color'] }} rounded-pill">
+                        {{ $jurusanColors[$j]['name'] }}
+                        <a href="{{ route('siswa.index', array_merge(
+                            request()->except('jurusan'),
+                            ['jurusan' => array_diff((array)request('jurusan'), [$j])]
+                        )) }}" class="text-white text-decoration-none ms-1">&times;</a>
+                    </span>
+                @endforeach
+            @endif
+            @if(request('jenis_kelamin'))
+                @foreach((array)request('jenis_kelamin') as $jk)
+                    <span class="badge bg-{{ $jk == 'laki-laki' ? 'primary' : 'danger' }} rounded-pill">
+                        {{ ucfirst($jk) }}
+                        <a href="{{ route('siswa.index', array_merge(
+                            request()->except('jenis_kelamin'),
+                            ['jenis_kelamin' => array_diff((array)request('jenis_kelamin'), [$jk])]
+                        )) }}" class="text-white text-decoration-none ms-1">&times;</a>
+                    </span>
+                @endforeach
+            @endif
+        </div>
+    @endif
 
-        <style>
-            tr.cursor-pointer { cursor: pointer; }
-            tr.cursor-pointer:hover { background-color: rgba(0,0,0,0.02); }
-            #contextMenu { min-width: 150px; }
-            #contextMenu a:hover { background-color: rgba(0,0,0,0.05); }
-            .selected-row { background-color: rgba(0,123,255,0.1) !important; }
-            .context-menu-active { background-color: rgba(0,123,255,0.1) !important; }
-        </style>
+    <style>
+        tr.cursor-pointer { cursor: pointer; }
+        tr.cursor-pointer:hover { background-color: rgba(0,0,0,0.02); }
+        #contextMenu { min-width: 150px; }
+        #contextMenu a:hover { background-color: rgba(0,0,0,0.05); }
+        .selected-row { background-color: rgba(0,123,255,0.1) !important; }
+        .context-menu-active { background-color: rgba(0,123,255,0.1) !important; }
+        .table th {
+            font-weight: 600;
+            background: var(--bs-gray-100);
+        }
+        .table td {
+            vertical-align: middle;
+        }
+        .badge {
+            font-weight: 500;
+            letter-spacing: 0.5px;
+        }
+        .dropdown-menu {
+            border: none;
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+        }
+        .select-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
 
-        <script>
-            let contextMenu = document.getElementById('contextMenu');
-            let bulkActions = document.getElementById('bulkActions');
-            let selectedIds = new Set();
-            let activeRow = null;
+        .btn-check:checked + .btn {
+            transform: scale(0.95);
+        }
 
-            // Context Menu
-            function showContextMenu(event, id, nama) {
-                event.preventDefault();
+        .badge {
+            font-weight: 500;
+            font-size: 0.85rem;
+        }
 
-                // Remove active class from previous row
-                if (activeRow) activeRow.classList.remove('context-menu-active');
+        .badge a:hover {
+            opacity: 0.8;
+        }
+    </style>
 
-                // Add active class to current row
-                activeRow = event.currentTarget;
-                activeRow.classList.add('context-menu-active');
+    <script>
+        let contextMenu = document.getElementById('contextMenu');
+        let bulkActions = document.getElementById('bulkActions');
+        let selectedIds = new Set();
+        let activeRow = null;
 
-                // Set menu header
-                contextMenu.querySelector('.dropdown-header').textContent = nama;
+        // Context Menu
+        function showContextMenu(event, id, nama) {
+            event.preventDefault();
 
-                // Set up menu links
-                const editLink = contextMenu.querySelector('.edit-link');
-                const deleteLink = contextMenu.querySelector('.delete-link');
+            // Remove active class from previous row
+            if (activeRow) activeRow.classList.remove('context-menu-active');
 
-                editLink.href = `/siswa/${id}/edit`;
-                deleteLink.setAttribute('data-bs-toggle', 'modal');
-                deleteLink.setAttribute('data-bs-target', `#deleteModal${id}`);
+            // Add active class to current row
+            activeRow = event.currentTarget;
+            activeRow.classList.add('context-menu-active');
 
-                // Position menu at cursor
-                contextMenu.style.display = 'block';
+            // Set menu header
+            contextMenu.querySelector('.dropdown-header').textContent = nama;
 
-                // Adjust menu position to keep it in viewport
-                const menuWidth = contextMenu.offsetWidth;
-                const menuHeight = contextMenu.offsetHeight;
-                const windowWidth = window.innerWidth;
-                const windowHeight = window.innerHeight;
+            // Set up menu links
+            const editLink = contextMenu.querySelector('.edit-link');
+            const deleteLink = contextMenu.querySelector('.delete-link');
 
-                let left = event.pageX;
-                let top = event.pageY;
+            editLink.href = `/siswa/${id}/edit`;
+            deleteLink.setAttribute('data-bs-toggle', 'modal');
+            deleteLink.setAttribute('data-bs-target', `#deleteModal${id}`);
 
-                if (left + menuWidth > windowWidth) {
-                    left = windowWidth - menuWidth;
-                }
+            // Position menu at cursor
+            contextMenu.style.display = 'block';
 
-                if (top + menuHeight > windowHeight) {
-                    top = windowHeight - menuHeight;
-                }
+            // Adjust menu position to keep it in viewport
+            const menuWidth = contextMenu.offsetWidth;
+            const menuHeight = contextMenu.offsetHeight;
+            const windowWidth = window.innerWidth;
+            const windowHeight = window.innerHeight;
 
-                contextMenu.style.left = left + 'px';
-                contextMenu.style.top = top + 'px';
+            let left = event.pageX;
+            let top = event.pageY;
+
+            if (left + menuWidth > windowWidth) {
+                left = windowWidth - menuWidth;
             }
 
-            // Hide context menu when clicking outside
-            document.addEventListener('click', (event) => {
-                if (!contextMenu.contains(event.target)) {
-                    contextMenu.style.display = 'none';
-                    if (activeRow) {
-                        activeRow.classList.remove('context-menu-active');
-                        activeRow = null;
-                    }
-                }
-            });
+            if (top + menuHeight > windowHeight) {
+                top = windowHeight - menuHeight;
+            }
 
-            // Prevent default context menu
-            document.addEventListener('contextmenu', (event) => {
-                if (!event.target.closest('tr[data-id]')) {
-                    contextMenu.style.display = 'none';
-                    if (activeRow) {
-                        activeRow.classList.remove('context-menu-active');
-                        activeRow = null;
-                    }
-                }
-            });
+            contextMenu.style.left = left + 'px';
+            contextMenu.style.top = top + 'px';
+        }
 
-            // Close context menu on scroll
-            document.addEventListener('scroll', () => {
+        // Hide context menu when clicking outside
+        document.addEventListener('click', (event) => {
+            if (!contextMenu.contains(event.target)) {
                 contextMenu.style.display = 'none';
                 if (activeRow) {
                     activeRow.classList.remove('context-menu-active');
                     activeRow = null;
                 }
-            });
+            }
+        });
 
-            // Checkbox handling
-            document.getElementById('selectAll').addEventListener('change', function() {
-                document.querySelectorAll('.row-checkbox').forEach(checkbox => {
-                    checkbox.checked = this.checked;
-                    handleCheckboxChange(checkbox);
-                });
-            });
+        // Prevent default context menu
+        document.addEventListener('contextmenu', (event) => {
+            if (!event.target.closest('tr[data-id]')) {
+                contextMenu.style.display = 'none';
+                if (activeRow) {
+                    activeRow.classList.remove('context-menu-active');
+                    activeRow = null;
+                }
+            }
+        });
 
+        // Close context menu on scroll
+        document.addEventListener('scroll', () => {
+            contextMenu.style.display = 'none';
+            if (activeRow) {
+                activeRow.classList.remove('context-menu-active');
+                activeRow = null;
+            }
+        });
+
+        // Checkbox handling
+        document.getElementById('selectAll').addEventListener('change', function() {
             document.querySelectorAll('.row-checkbox').forEach(checkbox => {
-                checkbox.addEventListener('change', function() {
-                    handleCheckboxChange(this);
-                });
+                checkbox.checked = this.checked;
+                handleCheckboxChange(checkbox);
             });
+        });
 
-            function handleCheckboxChange(checkbox) {
-                const row = checkbox.closest('tr');
-                if (checkbox.checked) {
-                    selectedIds.add(checkbox.value);
-                    row.classList.add('selected-row');
-                } else {
-                    selectedIds.delete(checkbox.value);
-                    row.classList.remove('selected-row');
-                }
+        document.querySelectorAll('.row-checkbox').forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                handleCheckboxChange(this);
+            });
+        });
 
-                document.getElementById('selectedCount').textContent = selectedIds.size;
-                bulkActions.style.display = selectedIds.size > 0 ? 'block' : 'none';
+        function handleCheckboxChange(checkbox) {
+            const row = checkbox.closest('tr');
+            if (checkbox.checked) {
+                selectedIds.add(checkbox.value);
+                row.classList.add('selected-row');
+            } else {
+                selectedIds.delete(checkbox.value);
+                row.classList.remove('selected-row');
             }
 
-            function confirmBulkDelete() {
-                if (confirm(`Apakah anda yakin ingin menghapus ${selectedIds.size} data terpilih?`)) {
-                    document.getElementById('bulkDeleteIds').value = Array.from(selectedIds).join(',');
-                    document.getElementById('bulkDeleteForm').submit();
-                }
+            document.getElementById('selectedCount').textContent = selectedIds.size;
+            bulkActions.style.display = selectedIds.size > 0 ? 'block' : 'none';
+        }
+
+        function confirmBulkDelete() {
+            if (confirm(`Apakah anda yakin ingin menghapus ${selectedIds.size} data terpilih?`)) {
+                document.getElementById('bulkDeleteIds').value = Array.from(selectedIds).join(',');
+                document.getElementById('bulkDeleteForm').submit();
             }
+        }
 
-            // Add click handler for delete links in context menu
-            document.querySelectorAll('.delete-link').forEach(link => {
-                link.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    const modalId = this.getAttribute('data-bs-target');
-                    const modal = new bootstrap.Modal(document.querySelector(modalId));
-                    modal.show();
-                });
+        // Add click handler for delete links in context menu
+        document.querySelectorAll('.delete-link').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                const modalId = this.getAttribute('data-bs-target');
+                const modal = new bootstrap.Modal(document.querySelector(modalId));
+                modal.show();
             });
+        });
 
-            // Prevent row click when selecting text
-            document.addEventListener('mousedown', function(e) {
-                if (window.getSelection().toString()) {
-                    e.stopPropagation();
-                }
-            });
-        </script>
-    </div>
+        // Prevent row click when selecting text
+        document.addEventListener('mousedown', function(e) {
+            if (window.getSelection().toString()) {
+                e.stopPropagation();
+            }
+        });
+
+        // Add this to your existing scripts
+        function submitSearch(event) {
+            // Submit form after 500ms of last keypress
+            clearTimeout(window.searchTimeout);
+            window.searchTimeout = setTimeout(() => {
+                document.getElementById('searchForm').submit();
+            }, 500);
+        }
+    </script>
 </div>
 @endsection

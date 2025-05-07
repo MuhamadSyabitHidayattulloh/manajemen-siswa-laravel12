@@ -20,6 +20,19 @@
             --link-color: #3182ce;
             --link-hover-color: #2c5282;
             --header-bg: #ffffff;
+            --sidebar-width: 280px;
+            --sidebar-collapsed-width: 0px;
+            --header-height: 60px;
+            --primary-color: #3b82f6;
+            --primary-dark: #1e40af;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --danger-color: #ef4444;
+            --info-color: #3b82f6;
+            --primary-rgb: 59, 130, 246;
+            --sidebar-hover-bg: rgba(59, 130, 246, 0.08);
+            --sidebar-active-text: #ffffff;
+            --sidebar-transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         body {
@@ -42,262 +55,135 @@
 
         .sidebar {
             position: fixed;
-            left: 0;
+            left: calc(var(--sidebar-collapsed-width) - var(--sidebar-width));
             top: 0;
             bottom: 0;
-            width: 70px;
+            width: var(--sidebar-width);
             z-index: 1040;
-            transition: all 0.35s ease-in-out;
-            background: linear-gradient(180deg, var(--sidebar-bg) 0%, var(--body-bg) 100%);
+            transition: all var(--sidebar-transition);
+            background: var(--sidebar-bg);
+            box-shadow: 4px 0 24px rgba(0, 0, 0, 0.15);
+            overflow-x: hidden;
+            overflow-y: auto;
+            backdrop-filter: blur(10px);
         }
 
-        .sidebar:hover {
-            width: 250px;
+        .sidebar.show {
+            left: 0;
         }
 
-        .sidebar .link-text,
-        .sidebar .sidebar-heading {
-            display: none;
-            transition: opacity 0.3s;
+        .sidebar-brand {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+            margin: 1.25rem;
+            border-radius: 1rem;
+            padding: 1.5rem !important;
+            color: white;
+            transition: all var(--sidebar-transition);
+            transform-origin: left;
+        }
+
+        .sidebar:hover .sidebar-brand,
+        .sidebar.show .sidebar-brand {
+            transform: scale(1.02);
+        }
+
+        .sidebar-link {
+            display: flex;
+            align-items: center;
+            padding: 0.875rem 1.5rem;
+            color: var(--text-secondary);
+            border-radius: 0.75rem;
+            transition: all var(--sidebar-transition);
+            margin: 0.25rem 1rem;
+            position: relative;
+            font-weight: 500;
+        }
+
+        .sidebar-link .bi {
+            font-size: 1.25rem;
+            transition: all var(--sidebar-transition);
+            width: 1.5rem;
+            text-align: center;
+        }
+
+        .sidebar-link:hover {
+            background: var(--sidebar-hover-bg);
+            color: var(--primary-color);
+            transform: translateX(5px);
+        }
+
+        .sidebar-link.active {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+            color: var(--sidebar-active-text);
+            box-shadow: 0 4px 12px rgba(var(--primary-rgb), 0.25);
+        }
+
+        .sidebar-link.active .bi {
+            transform: scale(1.1);
+        }
+
+        .sidebar-heading {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-secondary);
+            font-weight: 600;
+            padding: 1.5rem 1.5rem 0.75rem;
+            opacity: 0;
+            transition: opacity var(--sidebar-transition);
+            margin-top: 0.5rem;
+        }
+
+        .link-text {
+            margin-left: 1rem;
+            opacity: 0;
+            transition: all var(--sidebar-transition);
             white-space: nowrap;
         }
 
         .sidebar:hover .link-text,
-        .sidebar:hover .sidebar-heading {
-            display: block;
-        }
-
-        .sidebar .sidebar-brand {
-            justify-content: center;
-            padding: 1rem;
-        }
-
-        .sidebar:hover .sidebar-brand {
-            justify-content: flex-start;
-        }
-
-        .sidebar .sidebar-link {
-            justify-content: center;
-            padding: 0.75rem;
-            margin: 0.3rem 0.8rem;
-            border-radius: 0.8rem;
-        }
-
-        .sidebar:hover .sidebar-link {
-            justify-content: flex-start;
-            padding: 0.75rem 1rem;
-        }
-
-        .sidebar .bi {
-            font-size: 1.25rem;
-            margin: 0 !important;
-            display: block;
-        }
-
-        .sidebar:hover .bi {
-            margin-right: 0.5rem !important;
-            font-size: 1.25rem;
-        }
-
-        .card {
-            background: var(--card-bg) !important;
-            border-color: var(--border-color);
-            border-radius: 0.75rem;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-            transition: all 0.3s ease;
-        }
-
-        .card:hover {
-            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
-        }
-
-        .card-header {
-            padding: 1rem 1.5rem;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        .card-body {
-            padding: 1.5rem;
-        }
-
-        .card-footer {
-            padding: 1rem 1.5rem;
-            border-top: 1px solid var(--border-color);
-        }
-
-        .form-control, .form-select {
-            padding: 0.625rem 1rem;
-            border-radius: 0.5rem;
-            background-color: #ffffff;
-            border-color: var(--border-color);
-            color: var(--text-primary);
-            transition: all 0.2s ease;
-        }
-
-        .form-control:focus, .form-select:focus {
-            background-color: #ffffff;
-            border-color: var(--bs-primary);
-            color: var(--text-primary);
-        }
-
-        .form-control:hover, .form-select:hover {
-            border-color: var(--bs-primary);
-        }
-
-        .input-group-text {
-            background-color: var(--card-bg);
-            border-color: var(--border-color);
-            color: var(--text-secondary);
-        }
-
-        .btn {
-            padding: 0.625rem 1.25rem;
-            border-radius: 0.5rem;
-            font-weight: 500;
-            transition: all 0.3s ease;
-        }
-
-        .btn-sm {
-            padding: 0.375rem 0.75rem;
-            border-radius: 0.375rem;
-        }
-
-        .btn:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-        }
-
-        .table {
-            --bs-table-hover-bg: var(--hover-bg);
-            color: var(--text-primary);
-            font-size: 0.875rem;
-        }
-
-        .table th {
-            background-color: #f8fafc;
-            color: var(--text-secondary);
-            font-weight: 500;
-            font-size: 0.875rem;
-            padding: 0.75rem;
-            white-space: nowrap;
-            letter-spacing: normal;
-            text-transform: none;
-        }
-
-        /* Ensure consistent font weight for dropdown toggles in table headers */
-        .table th .btn-link {
-            font-weight: 500;
-            font-size: 0.875rem;
-            padding: 0;
-        }
-
-        /* Keep dropdown text consistent with other header text */
-        .table th .dropdown-toggle {
-            font-weight: 500;
-            font-size: 0.875rem;
-        }
-
-        .badge {
-            padding: 0.5em 0.75em;
-            font-weight: 500;
-        }
-
-        .alert {
-            border-radius: 0.75rem;
-            border: none;
-            padding: 1rem 1.5rem;
-        }
-
-        .bi {
-            font-weight: 600;
-        }
-
-        .wrapper {
-            display: flex;
-            min-height: 100vh;
-            width: 100%;
-            overflow-x: hidden;
+        .sidebar.show .link-text,
+        .sidebar:hover .sidebar-heading,
+        .sidebar.show .sidebar-heading {
+            opacity: 1;
         }
 
         .main-content {
-            flex: 1;
-            min-width: 0;
-            margin-left: 70px;
-            width: calc(100% - 70px);
+            margin-left: 0;
+            width: 100%;
+            transition: margin-left 0.3s ease;
         }
 
-        header {
-            background: var(--header-bg) !important;
+        .main-content.shifted {
+            margin-left: var(--sidebar-width);
+            width: calc(100% - var(--sidebar-width));
         }
 
-        .fade-in {
-            animation: fadeIn 0.4s ease-out;
+        .sidebar-backdrop {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1039;
         }
 
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .nav-link {
-            color: var(--text-secondary);
-            border-radius: 8px;
-            margin: 4px 0;
-            transition: all 0.3s;
-        }
-
-        .nav-link:hover {
-            background: var(--hover-bg);
-            color: var(--text-primary);
-        }
-
-        .nav-link.active {
-            background: var(--link-color);
-            color: white !important;
-        }
-
-        .dropdown-menu {
-            background: var(--card-bg);
-            border-color: var(--border-color);
-        }
-
-        .dropdown-item {
-            color: var(--text-primary);
-        }
-
-        .dropdown-item:hover {
-            background: var(--hover-bg);
-            color: var(--text-primary);
-        }
-
-        .dropdown-item.active {
-            background: var(--bs-primary);
-            color: white;
-        }
-
-        .modal-content {
-            background: var(--card-bg);
-        }
-
-        .modal-header, .modal-footer {
-            border-color: var(--border-color);
+        .sidebar-backdrop.show {
+            display: block;
         }
 
         @media (max-width: 768px) {
             .sidebar {
-                transform: translateX(-100%);
-                box-shadow: none;
+                left: -100%;
+                transform: none;
+                z-index: 1041;
             }
 
             .sidebar.show {
-                transform: translateX(0);
-                box-shadow: 0 0 20px rgba(0,0,0,0.15);
-            }
-
-            .main-content {
-                margin-left: 0 !important;
-                width: 100% !important;
-                padding-top: 60px;
+                left: 0;
+                transform: none;
             }
 
             .mobile-header {
@@ -312,56 +198,17 @@
             }
         }
 
-        .sidebar-link {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 0.75rem;
-            color: var(--text-secondary);
-            border-radius: 0.5rem;
-            transition: all 0.3s;
-            margin-bottom: 0.5rem;
-            width: 100%;
-        }
-
-        .sidebar-link.active {
-            background-color: var(--link-color);
-            color: white;
-        }
-
-        .sidebar-link.active .bi {
-            color: white;
-        }
-
-        .sidebar-link:hover:not(.active) {
-            background-color: var(--hover-bg);
-            color: var(--text-primary);
-        }
-
-        .sidebar:hover .sidebar-link {
-            justify-content: flex-start;
-            padding: 0.75rem 1rem;
-        }
-
-        .sidebar-heading {
-            font-size: 0.75rem;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            color: var(--text-secondary);
-            font-weight: 600;
-            padding: 0.75rem 1rem;
-            margin-top: 1rem;
-        }
-
         .stat-card {
             transition: all 0.3s ease;
             border-radius: 1rem;
             overflow: hidden;
+            background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%) !important;
         }
 
         .stat-card:hover {
             transform: translateY(-5px);
             box-shadow: 0 10px 20px rgba(0,0,0,0.08);
+            background: linear-gradient(135deg, #ffffff 0%, #f1f5f9 100%) !important;
         }
     </style>
 </head>
@@ -375,65 +222,59 @@
         </div>
 
         <!-- Sidebar -->
-        <div class="sidebar bg-white shadow-sm vh-100 overflow-auto">
-            <div class="d-flex align-items-center p-3 mb-3 sidebar-brand">
-                <i class="bi bi-mortarboard-fill text-primary fs-3"></i>
-                <span class="link-text ms-2">Manajemen Siswa</span>
+        <div class="sidebar" id="sidebar">
+            <div class="sidebar-brand d-flex align-items-center">
+                <i class="bi bi-mortarboard-fill text-white fs-4"></i>
+                <span class="link-text ms-3 text-white">Manajemen Siswa</span>
             </div>
 
             <!-- Dashboard Section -->
             <div class="sidebar-heading">Dashboard</div>
             <a href="{{ route('siswa.index') }}"
-               class="sidebar-link {{ request()->routeIs('siswa.index') ? 'active' : '' }}"
-               title="Overview">
+               class="sidebar-link {{ request()->routeIs('siswa.index') ? 'active' : '' }}">
                 <i class="bi bi-speedometer2"></i>
-                <span class="link-text ms-2">Overview</span>
+                <span class="link-text">Overview</span>
             </a>
 
             <!-- Manajemen Siswa Section -->
             <div class="sidebar-heading">Manajemen Siswa</div>
             <a href="{{ route('siswa.index') }}"
-               class="sidebar-link {{ request()->routeIs('siswa.index') && !request()->query() ? 'active' : '' }}"
-               title="Daftar Siswa">
+               class="sidebar-link {{ request()->routeIs('siswa.index') && !request()->query() ? 'active' : '' }}">
                 <i class="bi bi-people-fill"></i>
-                <span class="link-text ms-2">Daftar Siswa</span>
+                <span class="link-text">Daftar Siswa</span>
             </a>
             <a href="{{ route('siswa.create') }}"
-               class="sidebar-link {{ request()->routeIs('siswa.create') ? 'active' : '' }}"
-               title="Tambah Siswa">
+               class="sidebar-link {{ request()->routeIs('siswa.create') ? 'active' : '' }}">
                 <i class="bi bi-person-plus-fill"></i>
-                <span class="link-text ms-2">Tambah Siswa</span>
+                <span class="link-text">Tambah Siswa</span>
             </a>
 
             <!-- Filter Section -->
             <div class="sidebar-heading">Filter Cepat</div>
             <a href="{{ route('siswa.index', ['jenis_kelamin' => 'laki-laki']) }}"
-               class="sidebar-link {{ request('jenis_kelamin') == 'laki-laki' ? 'active' : '' }}"
-               title="Siswa Laki-laki">
+               class="sidebar-link {{ request('jenis_kelamin') == 'laki-laki' ? 'active' : '' }}">
                 <i class="bi bi-gender-male"></i>
-                <span class="link-text ms-2">Siswa Laki-laki</span>
+                <span class="link-text">Siswa Laki-laki</span>
             </a>
             <a href="{{ route('siswa.index', ['jenis_kelamin' => 'perempuan']) }}"
-               class="sidebar-link {{ request('jenis_kelamin') == 'perempuan' ? 'active' : '' }}"
-               title="Siswa Perempuan">
+               class="sidebar-link {{ request('jenis_kelamin') == 'perempuan' ? 'active' : '' }}">
                 <i class="bi bi-gender-female"></i>
-                <span class="link-text ms-2">Siswa Perempuan</span>
+                <span class="link-text">Siswa Perempuan</span>
             </a>
 
             <!-- Kelas Section -->
             <div class="sidebar-heading">Kelas</div>
             @foreach(['10', '11', '12'] as $kelas)
                 <a href="{{ route('siswa.index', ['kelas' => $kelas]) }}"
-                   class="sidebar-link {{ request('kelas') == $kelas ? 'active' : '' }}"
-                   title="Kelas {{ $kelas }}">
+                   class="sidebar-link {{ request('kelas') == $kelas ? 'active' : '' }}">
                     <i class="bi bi-mortarboard"></i>
-                    <span class="link-text ms-2">Kelas {{ $kelas }}</span>
+                    <span class="link-text">Kelas {{ $kelas }}</span>
                 </a>
             @endforeach
         </div>
 
         <!-- Main Content -->
-        <div class="main-content">
+        <div class="main-content" id="mainContent">
             <div class="content-wrapper px-4">
                 <!-- Header/Breadcrumb -->
                 <header class="bg-white shadow-sm mb-4 p-3 rounded">
@@ -466,10 +307,43 @@
             return new bootstrap.Tooltip(tooltipTriggerEl);
         });
 
+        document.addEventListener('keydown', function(event) {
+            // Check if Ctrl+Shift is pressed
+            if (event.ctrlKey && event.shiftKey) {
+                const sidebar = document.querySelector('.sidebar');
+                const mainContent = document.getElementById('mainContent');
+                sidebar.classList.toggle('show');
+                mainContent.classList.toggle('shifted');
+            }
+        });
+
         function toggleMobileSidebar() {
-            document.querySelector('.sidebar').classList.toggle('show');
-            document.querySelector('.sidebar-backdrop').classList.toggle('show');
+            const sidebar = document.querySelector('.sidebar');
+            const backdrop = document.querySelector('.sidebar-backdrop');
+            
+            sidebar.classList.toggle('show');
+            backdrop.classList.toggle('show');
+            
+            // Prevent body scroll when sidebar is open
+            document.body.style.overflow = sidebar.classList.contains('show') ? 'hidden' : '';
         }
+
+        // Close sidebar when clicking backdrop
+        document.querySelector('.sidebar-backdrop').addEventListener('click', function() {
+            toggleMobileSidebar();
+        });
+
+        // Handle window resize
+        window.addEventListener('resize', function() {
+            const sidebar = document.querySelector('.sidebar');
+            const backdrop = document.querySelector('.sidebar-backdrop');
+            
+            if (window.innerWidth > 768 && sidebar.classList.contains('show')) {
+                sidebar.classList.remove('show');
+                backdrop.classList.remove('show');
+                document.body.style.overflow = '';
+            }
+        });
 
         // Close sidebar when clicking outside on mobile
         document.addEventListener('click', function(event) {
@@ -488,7 +362,6 @@
         // Handle window resize
         window.addEventListener('resize', function() {
             if (window.innerWidth > 768) {
-                document.querySelector('.sidebar').classList.remove('show');
                 document.querySelector('.sidebar-backdrop').classList.remove('show');
             }
         });
