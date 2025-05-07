@@ -8,6 +8,7 @@ use App\Exports\SiswaPDFExport;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Cache;
 
 class SiswaController extends Controller
 {
@@ -19,6 +20,8 @@ class SiswaController extends Controller
         $filters = $request->only(['search', 'kelas', 'jurusan', 'jenis_kelamin']);
         $sort = $request->get('sort', 'nama');
         $direction = $request->get('direction', 'asc');
+        $filters['sort'] = $sort;
+        $filters['direction'] = $direction;
 
         if ($request->has('export')) {
             if ($request->export === 'excel') {
@@ -28,22 +31,31 @@ class SiswaController extends Controller
             }
         }
 
-        $siswa = Siswa::search($filters)
-            ->orderBy($sort, $direction)
-            ->paginate(10)
-            ->withQueryString();
+        // Clear the cache when filters are applied
+        if (!empty($filters)) {
+            Cache::forget('siswa_list');
+        }
 
-        // Statistics
-        $totalSiswa = Siswa::count();
-        $totalKelas = Siswa::distinct('kelas')->count('kelas');
-        $totalJurusan = Siswa::distinct('jurusan')->count('jurusan');
-        $totalLaki = Siswa::where('jenis_kelamin', 'laki-laki')->count();
-        $totalPerempuan = Siswa::where('jenis_kelamin', 'perempuan')->count();
+        $siswa = Cache::remember('siswa_list', 60 * 5, function () use ($filters) {
+            return Siswa::search($filters)
+                ->paginate(10)
+                ->withQueryString();
+        });
 
-        return view('siswa.index', compact(
-            'siswa', 'sort', 'direction', 'filters',
-            'totalSiswa', 'totalKelas', 'totalJurusan',
-            'totalLaki', 'totalPerempuan'
+        // Cache statistics for 5 minutes
+        $statistics = Cache::remember('siswa_stats', 60 * 5, function () {
+            return [
+                'totalSiswa' => Siswa::count(),
+                'totalKelas' => Siswa::distinct('kelas')->count('kelas'),
+                'totalJurusan' => Siswa::distinct('jurusan')->count('jurusan'),
+                'totalLaki' => Siswa::where('jenis_kelamin', 'laki-laki')->count(),
+                'totalPerempuan' => Siswa::where('jenis_kelamin', 'perempuan')->count(),
+            ];
+        });
+
+        return view('siswa.index', array_merge(
+            compact('siswa', 'filters', 'sort', 'direction'),
+            $statistics
         ));
     }
 

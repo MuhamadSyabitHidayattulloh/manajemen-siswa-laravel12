@@ -17,23 +17,27 @@ class Siswa extends Model
         'alamat',
     ];
 
-    public function scopeSearch($query, $filters)
+    public function scopeSearch($query, $filters = [])
     {
-        return $query->when($filters['search'] ?? false, function ($query, $search) {
-            $query->where(function ($query) use ($search) {
-                $query->where('nis', 'like', '%' . $search . '%')
-                    ->orWhere('nama', 'like', '%' . $search . '%')
-                    ->orWhere('alamat', 'like', '%' . $search . '%');
+        return $query
+            ->when(isset($filters['search']), function ($query) use ($filters) {
+                $query->where(function ($query) use ($filters) {
+                    $query->where('nis', 'like', '%' . $filters['search'] . '%')
+                        ->orWhere('nama', 'like', '%' . $filters['search'] . '%')
+                        ->orWhere('alamat', 'like', '%' . $filters['search'] . '%');
+                });
+            })
+            ->when(isset($filters['kelas']), function ($query) use ($filters) {
+                $query->where('kelas', $filters['kelas']);
+            })
+            ->when(isset($filters['jurusan']), function ($query) use ($filters) {
+                $query->where('jurusan', $filters['jurusan']);
+            })
+            ->when(isset($filters['jenis_kelamin']), function ($query) use ($filters) {
+                $query->where('jenis_kelamin', $filters['jenis_kelamin']);
+            })
+            ->when(isset($filters['sort']) && isset($filters['direction']), function ($query) use ($filters) {
+                $query->orderBy($filters['sort'], $filters['direction']);
             });
-        })
-        ->when($filters['kelas'] ?? false, function ($query, $kelas) {
-            $query->where('kelas', $kelas);
-        })
-        ->when($filters['jurusan'] ?? false, function ($query, $jurusan) {
-            $query->where('jurusan', $jurusan);
-        })
-        ->when($filters['jenis_kelamin'] ?? false, function ($query, $jenis_kelamin) {
-            $query->where('jenis_kelamin', $jenis_kelamin);
-        });
     }
 }
