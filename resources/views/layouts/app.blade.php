@@ -210,6 +210,35 @@
             box-shadow: 0 10px 20px rgba(0,0,0,0.08);
             background: linear-gradient(135deg, #ffffff 0%, #f1f5f9 100%) !important;
         }
+
+        .sidebar-toggle {
+            position: fixed;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 0 0.5rem 0.5rem 0;
+            padding: 0.5rem;
+            z-index: 1041;
+            transition: all var(--sidebar-transition);
+            cursor: pointer;
+        }
+
+        .sidebar-toggle.shifted {
+            left: var(--sidebar-width);
+        }
+
+        .sidebar-toggle:hover {
+            background: var(--primary-dark);
+        }
+
+        @media (max-width: 768px) {
+            .sidebar-toggle {
+                display: none;
+            }
+        }
     </style>
 </head>
 <body>
@@ -220,6 +249,11 @@
                 <i class="bi bi-list"></i>
             </button>
         </div>
+
+        <!-- Add Toggle Button -->
+        <button class="sidebar-toggle" id="sidebarToggle">
+            <i class="bi bi-chevron-right"></i>
+        </button>
 
         <!-- Sidebar -->
         <div class="sidebar" id="sidebar">
@@ -307,23 +341,43 @@
             return new bootstrap.Tooltip(tooltipTriggerEl);
         });
 
+        function toggleSidebar() {
+            const sidebar = document.querySelector('.sidebar');
+            const mainContent = document.getElementById('mainContent');
+            const toggleButton = document.getElementById('sidebarToggle');
+            const toggleIcon = toggleButton.querySelector('i');
+
+            sidebar.classList.toggle('show');
+            mainContent.classList.toggle('shifted');
+            toggleButton.classList.toggle('shifted');
+
+            // Update the toggle icon
+            if (sidebar.classList.contains('show')) {
+                toggleIcon.classList.remove('bi-chevron-right');
+                toggleIcon.classList.add('bi-chevron-left');
+            } else {
+                toggleIcon.classList.remove('bi-chevron-left');
+                toggleIcon.classList.add('bi-chevron-right');
+            }
+        }
+
+        // Add click event for the toggle button
+        document.getElementById('sidebarToggle').addEventListener('click', toggleSidebar);
+
+        // Modify keyboard shortcut to use the new toggle function
         document.addEventListener('keydown', function(event) {
-            // Check if Ctrl+Shift is pressed
             if (event.ctrlKey && event.shiftKey) {
-                const sidebar = document.querySelector('.sidebar');
-                const mainContent = document.getElementById('mainContent');
-                sidebar.classList.toggle('show');
-                mainContent.classList.toggle('shifted');
+                toggleSidebar();
             }
         });
 
         function toggleMobileSidebar() {
             const sidebar = document.querySelector('.sidebar');
             const backdrop = document.querySelector('.sidebar-backdrop');
-            
+
             sidebar.classList.toggle('show');
             backdrop.classList.toggle('show');
-            
+
             // Prevent body scroll when sidebar is open
             document.body.style.overflow = sidebar.classList.contains('show') ? 'hidden' : '';
         }
@@ -337,7 +391,7 @@
         window.addEventListener('resize', function() {
             const sidebar = document.querySelector('.sidebar');
             const backdrop = document.querySelector('.sidebar-backdrop');
-            
+
             if (window.innerWidth > 768 && sidebar.classList.contains('show')) {
                 sidebar.classList.remove('show');
                 backdrop.classList.remove('show');
